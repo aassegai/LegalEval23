@@ -85,6 +85,6 @@ class DataPreprocessor:
         for i in range(len(self.dataframe.data)):
             self.dataframe.data[i]['text'] = new_texts[i]
             self.dataframe.annotations[i]['result'] = new_annotations[i]
-        
+        self.dataframe.set_index('id').fillna('')
         return self.dataframe
         
