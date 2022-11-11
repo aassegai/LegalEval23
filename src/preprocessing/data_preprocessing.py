@@ -35,7 +35,7 @@ class DataPreprocessor:
             new_annotations.append(new_result)
         return new_annotations
 
-    def preprocess_text(self, texts, annotations)):
+    def preprocess_text(self, texts, annotations):
         new_texts = []
         new_annotations = []
         for i in tqdm(range(len(texts))):
