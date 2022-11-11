@@ -79,14 +79,12 @@ class DataPreprocessor:
 
 
     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
-        df.rename(columns={'id': 'text_id'}, inplace=True)
-        print(df.columns)
         self.dataframe = df
         self.dataframe['annotations'] = self.filter_annotations(df['annotations'])
         new_texts, new_annotations = self.preprocess_text(df.data, df.annotations)
         for i in range(len(self.dataframe.data)):
             self.dataframe.data[i]['text'] = new_texts[i]
             self.dataframe.annotations[i]['result'] = new_annotations[i]
-        self.dataframe = self.dataframe.set_index('text_id')
+        self.dataframe = self.dataframe.set_index('id')
         return self.dataframe
         
