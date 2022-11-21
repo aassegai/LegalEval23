@@ -85,6 +85,7 @@ class DataPreprocessor:
         for i in range(len(self.dataframe.data)):
             self.dataframe.data[i] = new_texts[i]
             self.dataframe.annotations[i] = new_annotations[i]
+        self.dataframe.drop_duplicates(subset='id', inplace=True)
         self.dataframe = self.dataframe.set_index('id')
         return self.dataframe
         
