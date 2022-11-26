@@ -98,7 +98,7 @@ class DataPreprocessor:
                 segment['value']['start'] = prep_text.find(prep_segment)
                 segment['value']['end'] = prep_text.find(prep_segment) + len(prep_segment)
                 segment['value']['text'] = prep_segment
-                segment['value']['labels'] = label2id[segment['value']['labels']]
+                segment['value']['labels'] = label2id[segment['value']['labels'][0]]
                 segments.append(segment)
 
             new_annotations.append(segments)
