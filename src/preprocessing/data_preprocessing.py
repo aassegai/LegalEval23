@@ -80,12 +80,14 @@ class DataPreprocessor:
 
     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
         self.dataframe = df
-        self.dataframe['annotations'] = self.filter_annotations(df['annotations'])
-        new_texts, new_annotations = self.preprocess_text(df.data, df.annotations)
-        for i in range(len(self.dataframe.data)):
-            self.dataframe.data[i] = new_texts[i]
-            self.dataframe.annotations[i] = new_annotations[i]
         self.dataframe.drop_duplicates(subset='id', inplace=True)
         self.dataframe = self.dataframe.set_index('id')
+        self.dataframe['annotations'] = self.filter_annotations(df['annotations'])
+        new_texts, new_annotations = self.preprocess_text(df.data, df.annotations)
+        for i, idx in enumerate(self.dataframe.index):
+            self.dataframe.loc[idx].data = new_texts[i]
+            self.dataframe.loc[idx].annotations = new_annotations[i]
+            if len(self.dataframe.loc[idx].annotations) == 0:
+                self.dataframe.drop[idx]
         return self.dataframe
         
