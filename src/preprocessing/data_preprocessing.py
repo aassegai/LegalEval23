@@ -90,6 +90,6 @@ class DataPreprocessor:
             self.dataframe.loc[idx].data = new_texts[i]
             self.dataframe.loc[idx].annotations = new_annotations[i]
             if len(self.dataframe.loc[idx].annotations) == 0:
-                self.dataframe.drop[idx]
+                self.dataframe.drop(idx, inplace=True)
         return self.dataframe
         
