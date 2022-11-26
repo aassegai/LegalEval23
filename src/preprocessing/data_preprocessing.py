@@ -8,6 +8,35 @@ from nltk.stem import WordNetLemmatizer
 from tqdm.auto import tqdm 
 
 lemmatizer = WordNetLemmatizer()
+label2id = {'PREAMBLE': 0,
+            'FAC': 1,
+            'RLC': 2,
+            'ISSUE': 3,
+            'ARG_PETITIONER': 4,
+            'ARG_RESPONDENT': 5,
+            'ANALYSIS': 6,
+            'STA': 7,
+            'PRE_RELIED': 8,
+            'PRE_NOT_RELIED': 9,
+            'RATIO': 10,
+            'RPC': 11,
+            'NONE': 12
+}
+
+id2label = {0: 'PREAMBLE',
+            1: 'FAC',
+            2: 'RLC',
+            3: 'ISSUE',
+            4: 'ARG_PETITIONER',
+            5: 'ARG_RESPONDENT',
+            6: 'ANALYSIS',
+            7: 'STA',
+            8: 'PRE_RELIED',
+            9: 'PRE_NOT_RELIED',
+            10: 'RATIO',
+            11: 'RPC',
+            12: 'NONE'
+}
 
 
 class DataPreprocessor:
@@ -69,6 +98,7 @@ class DataPreprocessor:
                 segment['value']['start'] = prep_text.find(prep_segment)
                 segment['value']['end'] = prep_text.find(prep_segment) + len(prep_segment)
                 segment['value']['text'] = prep_segment
+                segment['value']['labels'] = label2id[segment['value']['labels']]
                 segments.append(segment)
 
             new_annotations.append(segments)
