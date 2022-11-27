@@ -7,6 +7,7 @@ class ClassificationDataset(Dataset):
     def __init__(self, dataframe, tokenizer, max_len):
         self.data = dataframe
         self.text = dataframe.text
+        self.tokenizer = tokenizer
         self.targets = self.data.labels
         self.max_len = max_len
 
@@ -14,11 +15,8 @@ class ClassificationDataset(Dataset):
         return len(self.text)
 
     def __getitem__(self, index):
-        text = str(self.text[index])
-        text = " ".join(text.split())
-
         inputs = self.tokenizer.encode_plus(
-            text,
+            self.text,
             None,
             add_special_tokens=True,
             max_length=self.max_len,
