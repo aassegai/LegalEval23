@@ -15,14 +15,13 @@ class ClassificationDataset(Dataset):
         return len(self.text)
 
     def __getitem__(self, index):
-        inputs = self.tokenizer.encode_plus(
-            self.text,
+        inputs = self.tokenizer(
+            self.text[index],
             None,
             add_special_tokens=True,
             max_length=self.max_len,
             pad_to_max_length=True,
-            return_token_type_ids=True,
-            is_split_into_words=True
+            return_token_type_ids=True
         )
         ids = inputs['input_ids']
         mask = inputs['attention_mask']
@@ -30,5 +29,5 @@ class ClassificationDataset(Dataset):
         return {
             'ids': torch.tensor(ids, dtype=torch.long),
             'mask': torch.tensor(mask, dtype=torch.long),
-            'targets': torch.tensor(self.targets[index], dtype=torch.float)
+            'targets': torch.tensor(self.targets, dtype=torch.float)
         }
