@@ -68,25 +68,23 @@ class Trainer:
         for batch in train_loader:
             self.model.zero_grad()
             input_ids, attention_masks, labels = batch['ids'], batch['mask'], batch['targets']
-            print(batch['targets'].shape)
-            print(labels.shape)
             input_ids = input_ids.to(self.device)
             attention_masks = attention_masks.to(self.device)
             labels = labels.to(self.device)
-            print(labels.shape)
             preds = self.model(input_ids, attention_masks)
             loss = self.loss_fn(preds, labels)
             # print(preds.shape)
-            print(labels.shape)
+
             loss.backward()
             self.opt.step()
 
-            print(labels.shape)
-            preds_class = torch.sigmoid(preds.sum(dim=0)).cpu().detach().numpy()
+            # print(labels.shape)         
+            preds_class = torch.sigmoid(preds).cpu().detach().numpy()
             labels = labels.cpu().detach().numpy()
-
-            print(preds_class.shape)
-            print(labels.shape)
+            preds_class = np.array([np.argmax(pred) for pred in preds_class])
+            labels = np.array([np.argmax(label) for label in labels])
+            # print(preds_class[0:20])
+            # print(labels[0:10])
 
             f1 = f1_score(labels, preds_class, average='micro')          
 
