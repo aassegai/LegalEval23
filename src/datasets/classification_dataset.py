@@ -19,7 +19,7 @@ class ClassificationDataset(Dataset):
         mask = self.texts['attention_mask'][index]
 
         return {
-            'ids': torch.tensor(ids, dtype=torch.long),
-            'mask': torch.tensor(mask, dtype=torch.long),
+            'ids': ids.clone().detach(),
+            'mask': mask.clone().detach(),
             'targets': torch.tensor(self.targets[index], dtype=torch.float)
         }
