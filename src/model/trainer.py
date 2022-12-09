@@ -150,8 +150,13 @@ class Trainer:
         self.model.eval()
         predictions = []
         with torch.no_grad():
-            for batch in test_loader:
-                texts, labels = batch
-                logits = self.model.forward(texts.to(self.device))
-                predictions.extend(logits.argmax(1).tolist())
+            for batch in tqdm(test_loader):
+                input_ids, attention_masks, labels = batch['ids'], batch['mask'], batch['targets']
+                input_ids = input_ids.to(self.device)
+                attention_masks = attention_masks.to(self.device)
+                preds = self.model.forward(input_ids.to(self.device), attention_masks.to(self.device))
+                preds = torch.sigmoid(preds).cpu().detach().numpy()
+                print(preds.shape)
+                preds_class = np.array([np.argmax(pred) for pred in preds])
+                predictions.extend(preds_class)
         return np.asarray(predictions)
