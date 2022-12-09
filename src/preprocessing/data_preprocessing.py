@@ -67,7 +67,7 @@ class DataPreprocessor:
     def preprocess_text(self, texts, annotations):
         new_texts = []
         new_annotations = []
-        for i in tqdm(range(len(texts))):
+        for i in tqdm(texts.index):
             temp_text = texts[i]['text'].strip().replace('\n', ' ').lower()
             if self.remove_punctuation:
                 temp_text = re.sub(r'[^\w\s]', '', temp_text)
