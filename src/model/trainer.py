@@ -83,10 +83,10 @@ class Trainer:
             labels = labels.cpu().detach().numpy()
             preds_class = np.array([np.argmax(pred) for pred in preds_class])
             labels = np.array([np.argmax(label) for label in labels])
-            # print(preds_class[0:20])
-            # print(labels[0:10])
+            # print(f'preds: {preds_class[0:20]}')
+            # print(f'true: {labels[0:10]}')
 
-            f1 = f1_score(labels, preds_class, average='micro')          
+            f1 = f1_score(labels, preds_class, average='weighted')          
 
             running_train_loss += loss.item()
             running_train_f1 += f1
@@ -122,13 +122,15 @@ class Trainer:
                 loss = self.loss_fn(preds, labels)
 
 
-                preds_class = torch.sigmoid(preds.sum(dim=0)).cpu().detach().numpy()
-                labels = labels.cpu().numpy()
+                preds_class = torch.sigmoid(preds).cpu().detach().numpy()
+                labels = labels.cpu().detach().numpy()
+                preds_class = np.array([np.argmax(pred) for pred in preds_class])
+                labels = np.array([np.argmax(label) for label in labels])
 
-                print(preds_class.shape)
-                print(labels.shape)
+                # print(preds_class.shape)
+                # print(labels.shape)
 
-                f1 = f1_score(labels, preds_class, average='weightened')             
+                f1 = f1_score(labels, preds_class, average='weighted')             
 
                 running_val_loss += loss.item()
                 running_val_f1 += f1
