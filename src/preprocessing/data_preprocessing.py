@@ -70,7 +70,7 @@ class DataPreprocessor:
         for i in tqdm(texts.index):
             temp_text = texts[i]['text'].strip().replace('\n', ' ').lower()
             if self.remove_punctuation:
-                temp_text = re.sub(r'[^\w\s]', '', temp_text)
+                temp_text = re.sub(r'[^\w\s]', ' ', temp_text)
             prep_text = ''
             for word in temp_text.split():
                 if self.lemmatize:
@@ -87,7 +87,7 @@ class DataPreprocessor:
                 temp_segment = segment['value']['text'].strip().replace('\n', ' ').lower()
                 # print(segment['value']['text'])
                 if self.remove_punctuation:
-                    temp_segment = re.sub(r'[^\w\s]', '', temp_segment)
+                    temp_segment = re.sub(r'[^\w\s]', ' ', temp_segment)
                 prep_segment = ''
                 for word in temp_segment.split():
                     if self.lemmatize:
