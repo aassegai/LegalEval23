@@ -32,7 +32,7 @@ class Trainer:
         self.opt = None
         self.scheduler = None
         self.history = None
-        self.loss_fn = BCEWithLogitsLoss()
+        self.loss_fn = CrossEntropyLoss()
         self.device = config["device"]
         self.verbose = config.get("verbose", True)
 
