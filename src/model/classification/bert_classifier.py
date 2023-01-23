@@ -8,8 +8,7 @@ class BERTClassifier(torch.nn.Module):
         self.bert = model
         self.dropout = Dropout(dropout)
         self.fc1 = Linear(emb_size, 256)
-        self.fc2 = Linear(256, 128)
-        self.fc3 = Linear(128, num_labels)
+        self.fc2 = Linear(256, num_labels)
         self.relu = ReLU()
         
     def forward(self, input_ids, attention_mask):
