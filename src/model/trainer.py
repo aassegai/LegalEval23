@@ -32,8 +32,8 @@ class Trainer:
         self.opt = None
         self.scheduler = None
         self.history = None
-        self.loss_fn = NLLLoss()
         self.device = config["device"]
+        self.loss_fn = CrossEntropyLoss(weight=config['loss_weights'].to(self.device))
         self.verbose = config.get("verbose", True)
 
     def fit(self, model, train_loader, val_loader):
@@ -156,7 +156,6 @@ class Trainer:
                 attention_masks = attention_masks.to(self.device)
                 preds = self.model.forward(input_ids.to(self.device), attention_masks.to(self.device))
                 preds = torch.sigmoid(preds).cpu().detach().numpy()
-                print(preds.shape)
                 preds_class = np.array([np.argmax(pred) for pred in preds])
                 predictions.extend(preds_class)
         return np.asarray(predictions)
