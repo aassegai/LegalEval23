@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import sklearn
 from sklearn.metrics import f1_score
-from torch.nn import CrossEntropyLoss, BCEWithLogitsLoss
+from torch.nn import CrossEntropyLoss, BCEWithLogitsLoss, NLLLoss
 from torch.optim import Adam
 from tqdm.auto import tqdm
 
@@ -32,7 +32,7 @@ class Trainer:
         self.opt = None
         self.scheduler = None
         self.history = None
-        self.loss_fn = CrossEntropyLoss()
+        self.loss_fn = NLLLoss()
         self.device = config["device"]
         self.verbose = config.get("verbose", True)
 
@@ -72,7 +72,7 @@ class Trainer:
             attention_masks = attention_masks.to(self.device)
             labels = labels.to(self.device)
             preds = self.model(input_ids, attention_masks)
-            loss = self.loss_fn(preds, labels)
+            loss = self.loss_fn(preds, labels.long())
             # print(preds.shape)
 
             loss.backward()
@@ -119,7 +119,7 @@ class Trainer:
                 labels = labels.to(self.device)
 
                 preds = self.model(input_ids, attention_masks)
-                loss = self.loss_fn(preds, labels)
+                loss = self.loss_fn(preds, labels.long())
 
 
                 preds_class = torch.sigmoid(preds).cpu().detach().numpy()
