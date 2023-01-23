@@ -21,7 +21,5 @@ class BERTClassifier(torch.nn.Module):
         pooler = self.relu(pooler)
         pooler = self.dropout(pooler)
         pooler = self.fc2(pooler)
-        pooler = self.relu(pooler)
-        pooler = self.dropout(pooler)
-        output = self.fc3(pooler)
+        output = self.relu(pooler)
         return output
