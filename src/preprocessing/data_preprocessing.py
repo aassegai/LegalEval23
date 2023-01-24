@@ -73,10 +73,11 @@ class DataPreprocessor:
                 temp_text = re.sub(r'[^\w\s]', ' ', temp_text)
             prep_text = ''
             for word in temp_text.split():
-                if self.lemmatize:
-                    prep_text = prep_text + '' + self.lemmatizer.lemmatize(word) + ' '
-                else:
-                    prep_text = prep_text + '' + word + ' '
+                if len(word > 2):    
+                    if self.lemmatize:
+                        prep_text = prep_text + '' + self.lemmatizer.lemmatize(word) + ' '
+                    else:
+                        prep_text = prep_text + '' + word + ' '
             new_texts.append(prep_text)
 
 
@@ -90,10 +91,11 @@ class DataPreprocessor:
                     temp_segment = re.sub(r'[^\w\s]', ' ', temp_segment)
                 prep_segment = ''
                 for word in temp_segment.split():
-                    if self.lemmatize:
-                        prep_segment = prep_segment + '' + self.lemmatizer.lemmatize(word) + ' '
-                    else: 
-                        prep_segment = prep_segment + '' + word + ' '
+                    if len(word > 2):
+                        if self.lemmatize:
+                            prep_segment = prep_segment + '' + self.lemmatizer.lemmatize(word) + ' '
+                        else: 
+                            prep_segment = prep_segment + '' + word + ' '
                 # print(prep_segment)
                 segment['value']['start'] = prep_text.find(prep_segment)
                 segment['value']['end'] = prep_text.find(prep_segment) + len(prep_segment)
