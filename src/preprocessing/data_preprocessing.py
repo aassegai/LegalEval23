@@ -73,7 +73,7 @@ class DataPreprocessor:
                 temp_text = re.sub(r'[^\w\s]', ' ', temp_text)
             prep_text = ''
             for word in temp_text.split():
-                if len(word > 2):    
+                if len(word) > 2:    
                     if self.lemmatize:
                         prep_text = prep_text + '' + self.lemmatizer.lemmatize(word) + ' '
                     else:
@@ -91,7 +91,7 @@ class DataPreprocessor:
                     temp_segment = re.sub(r'[^\w\s]', ' ', temp_segment)
                 prep_segment = ''
                 for word in temp_segment.split():
-                    if len(word > 2):
+                    if len(word) > 2:
                         if self.lemmatize:
                             prep_segment = prep_segment + '' + self.lemmatizer.lemmatize(word) + ' '
                         else: 
