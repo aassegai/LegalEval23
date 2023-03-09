@@ -42,10 +42,12 @@ id2label = {0: 'PREAMBLE',
 class DataPreprocessor:
     def __init__(self, lemmatizer=lemmatizer,
                  remove_punctuation=True,
-                 lemmatize=True):
+                 lemmatize=True,
+                 for_rnn=False):
         self.lemmatizer = lemmatizer
         self.remove_punctuation = remove_punctuation
         self.lemmatize = lemmatize
+        self.for_rnn = for_rnn
     
     def filter_annotations(self, annotations):
         new_annotations = []
@@ -78,6 +80,8 @@ class DataPreprocessor:
                         prep_text = prep_text + '' + self.lemmatizer.lemmatize(word) + ' '
                     else:
                         prep_text = prep_text + '' + word + ' '
+            # if self.for_rnn:
+            #     prep_text = '<BOS>' + prep_text + '<EOS>'
             new_texts.append(prep_text)
 
 
@@ -96,6 +100,8 @@ class DataPreprocessor:
                             prep_segment = prep_segment + '' + self.lemmatizer.lemmatize(word) + ' '
                         else: 
                             prep_segment = prep_segment + '' + word + ' '
+                if self.for_rnn:
+                    prep_text = '<BOS>' + prep_text + '<EOS>'
                 # print(prep_segment)
                 segment['value']['start'] = prep_text.find(prep_segment)
                 segment['value']['end'] = prep_text.find(prep_segment) + len(prep_segment)
