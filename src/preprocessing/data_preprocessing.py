@@ -101,7 +101,7 @@ class DataPreprocessor:
                         else: 
                             prep_segment = prep_segment + '' + word + ' '
                 if self.for_rnn:
-                    prep_text = '<BOS>' + prep_text + '<EOS>'
+                    prep_segment = '<BOS>' + prep_text + '<EOS>'
                 # print(prep_segment)
                 segment['value']['start'] = prep_text.find(prep_segment)
                 segment['value']['end'] = prep_text.find(prep_segment) + len(prep_segment)
