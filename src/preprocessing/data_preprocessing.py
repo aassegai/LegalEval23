@@ -4,50 +4,26 @@ import re
 import nltk
 nltk.download('wordnet')
 nltk.download('omw-1.4')
+nltk.download('stopwords')
 from nltk.stem import WordNetLemmatizer
 from tqdm.auto import tqdm 
 
-lemmatizer = WordNetLemmatizer()
-label2id = {'PREAMBLE': 0,
-            'FAC': 1,
-            'RLC': 2,
-            'ISSUE': 3,
-            'ARG_PETITIONER': 4,
-            'ARG_RESPONDENT': 5,
-            'ANALYSIS': 6,
-            'STA': 7,
-            'PRE_RELIED': 8,
-            'PRE_NOT_RELIED': 9,
-            'RATIO': 10,
-            'RPC': 11,
-            'NONE': 12
-}
+stopwords = nltk.corpus.stopwords.words('english')
 
-id2label = {0: 'PREAMBLE',
-            1: 'FAC',
-            2: 'RLC',
-            3: 'ISSUE',
-            4: 'ARG_PETITIONER',
-            5: 'ARG_RESPONDENT',
-            6: 'ANALYSIS',
-            7: 'STA',
-            8: 'PRE_RELIED',
-            9: 'PRE_NOT_RELIED',
-            10: 'RATIO',
-            11: 'RPC',
-            12: 'NONE'
-}
+lemmatizer = WordNetLemmatizer()
 
 
 class DataPreprocessor:
     def __init__(self, lemmatizer=lemmatizer,
-                 remove_punctuation=True,
-                 lemmatize=True,
-                 for_rnn=False):
+                 remove_punctuation=False,
+                 lemmatize=False,
+                 lower=False,
+                 remove_stopwords=False):
         self.lemmatizer = lemmatizer
         self.remove_punctuation = remove_punctuation
         self.lemmatize = lemmatize
-        self.for_rnn = for_rnn
+        self.lower = lower
+        self.remove_stopwords = remove_stopwords
     
     def filter_annotations(self, annotations):
         new_annotations = []
@@ -70,18 +46,24 @@ class DataPreprocessor:
         new_texts = []
         new_annotations = []
         for i in tqdm(texts.index):
-            temp_text = texts[i]['text'].strip().replace('\n', ' ').lower()
+            temp_text = texts[i]['text'].replace('\n', ' ').strip()
+            if self.lower:
+                temp_text = temp_text.lower()
             if self.remove_punctuation:
                 temp_text = re.sub(r'[^\w\s]', ' ', temp_text)
             prep_text = ''
             for word in temp_text.split():
-                if len(word) > 2:    
+                if self.remove_stopwords:
+                    if word not in stopwords:  
+                        if self.lemmatize:
+                            prep_text = prep_text + '' + self.lemmatizer.parse(word)[0].normal_form + ' '
+                        else:
+                            prep_text = prep_text + '' + word + ' '
+                else:  
                     if self.lemmatize:
-                        prep_text = prep_text + '' + self.lemmatizer.lemmatize(word) + ' '
+                        prep_text = prep_text + '' + self.lemmatizer.parse(word)[0].normal_form + ' '
                     else:
                         prep_text = prep_text + '' + word + ' '
-            # if self.for_rnn:
-            #     prep_text = '<BOS>' + prep_text + '<EOS>'
             new_texts.append(prep_text)
 
 
@@ -89,24 +71,32 @@ class DataPreprocessor:
             segments = []
             for segment in annotations[i]['result']:
                 # print(segment['value']['text'])
-                temp_segment = segment['value']['text'].strip().replace('\n', ' ').lower()
+                temp_segment = segment['value']['text'].strip().replace('\n', ' ')
+                if self.lower:
+                    temp_text = temp_text.lower()
                 # print(segment['value']['text'])
                 if self.remove_punctuation:
                     temp_segment = re.sub(r'[^\w\s]', ' ', temp_segment)
                 prep_segment = ''
                 for word in temp_segment.split():
-                    if len(word) > 2:
+                    if self.remove_stopwords:
+                        if word not in stopwords:  
+                            if self.lemmatize:
+                                prep_segment = prep_segment + '' + self.lemmatizer.parse(word)[0].normal_form + ' '
+                            else:
+                                prep_segment = prep_segment + '' + word + ' '
+                    else:  
                         if self.lemmatize:
-                            prep_segment = prep_segment + '' + self.lemmatizer.lemmatize(word) + ' '
-                        else: 
-                            prep_segment = prep_segment + '' + word + ' '
-                if self.for_rnn:
-                    prep_segment = '<BOS>' + prep_segment + '<EOS>'
-                # print(prep_segment)
-                segment['value']['start'] = prep_text.find(prep_segment)
-                segment['value']['end'] = prep_text.find(prep_segment) + len(prep_segment)
-                segment['value']['text'] = prep_segment
-                segment['value']['labels'] = label2id[segment['value']['labels'][0]]
+                            prep_segment = prep_segment + '' + self.lemmatizer.parse(word)[0].normal_form + ' '
+                        else:
+                            prep_segment = prep_segment + '' + word + ' '            
+                prep_segment = prep_segment.strip()
+                segment['start'] = prep_text.find(prep_segment)
+                segment['end'] = prep_text.find(prep_segment) + len(prep_segment)
+                segment['text'] = prep_segment
+                segment['label'] = segment['value']['labels']
+                # segment['value']['labels'] = label2id[segment['value']['labels'][0]]
+                segment.pop('value')
                 segments.append(segment)
 
             new_annotations.append(segments)
