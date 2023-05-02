@@ -73,7 +73,7 @@ class DataPreprocessor:
                 # print(segment['value']['text'])
                 temp_segment = segment['value']['text'].strip().replace('\n', ' ')
                 if self.lower:
-                    temp_text = temp_text.lower()
+                    temp_segment = temp_segment.lower()
                 # print(segment['value']['text'])
                 if self.remove_punctuation:
                     temp_segment = re.sub(r'[^\w\s]', ' ', temp_segment)
