@@ -76,4 +76,11 @@ class DatasetBuilder:
             remove_columns=[col for col in raw_dataset.column_names if col != 'label']
         )
 
+        if for_test:
+          prepared_dataset = raw_dataset.map(
+            self.tokenize_batch,
+            batched=True,
+            remove_columns=[col for col in raw_dataset.column_names if col != 'label']
+        )
+
         return prepared_dataset
