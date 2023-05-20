@@ -59,7 +59,7 @@ class DatasetBuilder:
         return tokenized
 
 
-    def build_dataset(self, dataframe: pd.DataFrame):
+    def build_dataset(self, dataframe: pd.DataFrame, for_test:bool=False):
 
         # avoid possible confilct with other training
         df = dataframe.copy()
