@@ -67,7 +67,8 @@ class DatasetBuilder:
         print("Processing...")
 
         # remap labels to ids
-        df['label'] = dataframe['label'].apply(lambda x: self.label2id[x])
+        if 'label' in dataframe.columns:
+            df['label'] = dataframe['label'].apply(lambda x: self.label2id[x])
         raw_dataset = Dataset.from_pandas(df)
 
         prepared_dataset = raw_dataset.map(
