@@ -32,17 +32,17 @@ def show_text_segmentation(doc, annotation):
 
     colors = {'PREAMBLE': '#FF0000',
               'FAC': '#00FF00',
-              'RLC': '#0000FF',
+              'RLC': '#35B8D0',
               'ISSUE': '#FF00FF',
               'ARG_PETITIONER': '#FFFF00',
               'ARG_RESPONDENT': '#00FFFF',
-              'ANALYSIS': '#800080',
-              'STA': '#800080',
+              'ANALYSIS': '#5EAF48',
+              'STA': '#35B8D0',
               'PRE_RELIED': '#008000',
               'PRE_NOT_RELIED': '#FFC0CB',
               'RATIO': '#800000',
               'RPC': '#FF7F00',
-              'NONE': '101010'}
+              'NONE': '000010'}
 
     options = {'colors': colors}
   
