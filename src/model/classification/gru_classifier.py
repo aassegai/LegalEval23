@@ -25,7 +25,7 @@ class GRUClassifier(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.gru_1 = nn.GRU(self.bert.config.hidden_size, 256, batch_first=True, num_layers=3, bidirectional=True)
         self.dropout2 = nn.Dropout(dropout)
-        self.classifier = nn.Linear(256, self.num_labels)
+        self.classifier = nn.Linear(512, self.num_labels)
         self.max_seq_len = max_seq_len
         self.pooling = nn.AvgPool1d(kernel_size=max_seq_len)
         self.loss_fn = nn.CrossEntropyLoss(label_smoothing=self.label_smoothing)
