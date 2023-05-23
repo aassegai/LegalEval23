@@ -35,7 +35,7 @@ class GRUClassifier(nn.Module):
 
 
         # (batch_size, seq_len, hidden_size)
-        gru_output, _ = self.gru(output)
+        gru_output, _ = self.gru_1(output)
 
         # (1, batch_size, hidden_size)
         gru_sent_emb = torch.unsqueeze(gru_sent_emb, dim=0)
