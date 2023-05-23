@@ -8,11 +8,14 @@ from transformers import (AutoTokenizer,
                           Trainer)     
 import evaluate
 import torch
-import torch.nn as nn
+from torch import nn
+from src.model.classification import GRUClassifier
 
-
-
-
+'''
+This module is needed to unify all models training. 
+The class TransformerTrainer loads the model 
+and then fits it with given set of parameters and datasets using HF Trainer.
+'''
 
 
 
@@ -22,37 +25,53 @@ class TransformerTrainer:
                  params: dict, 
                  id2label: dict, 
                  label2id: dict,
-                 max_seq_len: int = 512):
+                 max_seq_len: int = 512, 
+                 custom: bool = False):
         self.params = params
         self.bert_name = bert_name
         self.id2label = id2label
         self.label2id = label2id
         self.num_labels = num_labels
         self.max_seq_len = max_seq_len
+        self.custom = custom
 
     def load_model(self):
-
-
+        ''' A function to download the model from HF or build my own model 
+             with 'custom' option. TODO: add support of an arbitrary torch model.
+        '''
         tokenizer = AutoTokenizer.from_pretrained(self.bert_name,
                                                   use_cache=False)
 
-        print("Downloading :", self.bert_name)
+        print("Loading :", self.bert_name)
 
-        model = AutoModelForSequenceClassification.from_pretrained(self.bert_name,
-                                                                    num_labels=self.num_labels,
-                                                                    id2label=self.id2label,
-                                                                    label2id=self.label2id,
-                                                                    use_cache=False)
-        model.config.eos_token_id = tokenizer.eos_token_id
-        model.config.pad_token_id = tokenizer.pad_token_id
-        model.config.cls_token_id = tokenizer.cls_token_id
-        model.config.max_new_tokens = model.config.max_length = self.max_seq_len
+        if self.custom:
+            model = GRUClassifier(bert_name=self.bert_name,
+                                          num_classes=self.num_labels,
+                                          id2label = self.id2label,
+                                          label2id = self.label2id)
+            model.bert.config.eos_token_id = tokenizer.eos_token_id
+            model.bert.config.pad_token_id = tokenizer.pad_token_id
+            model.bert.config.cls_token_id = tokenizer.cls_token_id
+            model.bert.config.max_new_tokens = model.bert.config.max_length = self.max_seq_len
+
+        else:
+            model = AutoModelForSequenceClassification.from_pretrained(self.bert_name,
+                                                                      num_labels=self.num_labels,
+                                                                      id2label=self.id2label,
+                                                                      label2id=self.label2id,
+                                                                      use_cache=False)
+            model.config.eos_token_id = tokenizer.eos_token_id
+            model.config.pad_token_id = tokenizer.pad_token_id
+            model.config.cls_token_id = tokenizer.cls_token_id
+            model.config.max_new_tokens = model.config.max_length = self.max_seq_len
 
         return model, tokenizer
 
     def make_output_dir_name(self, custom_dir: str = None):
+        # a function to make appropriate directory name for model saving
+
         if custom_dir is not None:
-            return './src/model/classification/' + custom_dir  
+            return custom_dir + '/' + self.bert_name 
         else:  
             return './src/model/classification/' + self.bert_name
     
@@ -62,8 +81,6 @@ class TransformerTrainer:
         preds, labels = eval_pred
         preds = np.argmax(preds, axis=1)
 
-        accuracy_score = evaluate.load('accuracy')
-        accuracy = accuracy_score.compute(predictions=preds, references=labels)['accuracy']
         precision_score = evaluate.load('precision')
         precision = precision_score.compute(predictions=preds, references=labels, average='weighted')['precision']
         recall_score = evaluate.load('recall')
@@ -72,7 +89,6 @@ class TransformerTrainer:
         weighted_f1 = f1_score.compute(predictions=preds, references=labels, average='weighted')['f1']
 
         return {
-            'accuracy': accuracy,
             'precison': precision,
             'recall': recall,
             'weighted_F1': weighted_f1,
@@ -98,16 +114,15 @@ class TransformerTrainer:
             evaluation_strategy="epoch",
             save_strategy="epoch",
             load_best_model_at_end=True,
-            eval_steps=1, # evaluate at each epoch
-            fp16=self.params['do_fp16'],  # speed up a bit the training
-            auto_find_batch_size=True,  # Starts from given batch size, decreases it if needed
+            eval_steps=1, 
+            fp16=self.params['do_fp16'],  # maybe it will speed up the training a bit
+            auto_find_batch_size=True, 
             dataloader_num_workers=self.params['num_workers'],
             optim = self.params['optimizer'] if 'optimizer' in self.params.keys() else 'adamw_torch', # avoids optimizer warnings
             full_determinism=True,
             logging_steps=100
         )
 
-        # instantiate trainer
         trainer = Trainer(
             model=model,
             args=training_args,
@@ -123,13 +138,10 @@ class TransformerTrainer:
         if save_model:
             trainer.save_model()
 
-
-        # important to avoid out of memory errors
+        # avoid out of memory errors
         del model
 
-        # return both the trainer and the tokenizer since they will be
-        # reused during the evaluation pipeline to perform predictions
-        return trainer, tokenizer
+        return trainer
 
 
     def predict(self, test_dataset, trainer: Trainer):
