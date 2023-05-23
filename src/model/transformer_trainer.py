@@ -9,7 +9,7 @@ from transformers import (AutoTokenizer,
 import evaluate
 import torch
 from torch import nn
-from src.model.classification import GRUClassifier
+from src.model.classification.gru_classifier import GRUClassifier
 
 '''
 This module is needed to unify all models training. 
