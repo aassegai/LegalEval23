@@ -46,7 +46,7 @@ class TransformerTrainer:
 
         if self.custom:
             model = GRUClassifier(bert_name=self.bert_name,
-                                          num_classes=self.num_labels,
+                                          num_labels=self.num_labels,
                                           id2label = self.id2label,
                                           label2id = self.label2id)
             model.bert.config.eos_token_id = tokenizer.eos_token_id
