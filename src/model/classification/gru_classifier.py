@@ -10,7 +10,9 @@ import torch
 from torch import nn
 
 class GRUClassifier(nn.Module):
-    def __init__(self, num_labels: int, bert_name: str, id2label: dict, label2id: dict, label_smoothing: int = 0.2, dropout: int = 0.3):
+    def __init__(self, num_labels: int, bert_name: str, 
+                       id2label: dict, label2id: dict, label_smoothing: int = 0.2, 
+                       dropout: int = 0.3, max_seq_len:int=512):
         super(GRUClassifier, self).__init__()
         self.num_labels = num_labels
         self.label_smoothing = label_smoothing
@@ -24,7 +26,10 @@ class GRUClassifier(nn.Module):
         self.gru_1 = nn.GRU(self.bert.config.hidden_size, 256, batch_first=True, num_layers=3, bidirectional=True)
         self.dropout2 = nn.Dropout(dropout)
         self.classifier = nn.Linear(256, self.num_labels)
+        self.max_seq_len = max_seq_len
+        self.pooling = nn.AvgPool1d(kernel_size=max_seq_len)
         self.loss_fn = nn.CrossEntropyLoss(label_smoothing=self.label_smoothing)
+
 
     def forward(self, input_ids, attention_mask, labels=None):
       
@@ -36,6 +41,9 @@ class GRUClassifier(nn.Module):
 
         # (batch_size, seq_len, hidden_size)
         gru_output, _ = self.gru_1(output)
+
+        # (batch_size, hidden_size)
+        gru_sent_emb = torch.mean(gru_output, dim=1)
 
         # (1, batch_size, hidden_size)
         gru_sent_emb = torch.unsqueeze(gru_sent_emb, dim=0)
