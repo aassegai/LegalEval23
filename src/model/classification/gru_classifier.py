@@ -15,7 +15,7 @@ class GRUClassifier(nn.Module):
         self.num_labels = num_labels
         self.label_smoothing = label_smoothing
         self.bert = BertModel.from_pretrained(bert_name,
-                                              num_labels=self.num_classes,
+                                              num_labels=self.num_labels,
                                               id2label=id2label,
                                               label2id=label2id,
                                               use_cache=False)
