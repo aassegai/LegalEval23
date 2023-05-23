@@ -29,6 +29,23 @@ def show_text_segmentation(doc, annotation):
 
     display_dict = {'text': doc,
                     'ents': display_sentences}
+
+    colors = {'PREAMBLE': '#FF0000',
+              'FAC': '#00FF00',
+              'RLC': '#0000FF',
+              'ISSUE': '#FF00FF',
+              'ARG_PETITIONER': '#FFFF00',
+              'ARG_RESPONDENT': '#00FFFF',
+              'ANALYSIS': '#800080',
+              'STA': '#800080',
+              'PRE_RELIED': '#008000',
+              'PRE_NOT_RELIED': '#FFC0CB',
+              'RATIO': '#800000',
+              'RPC': '#FF7F00',
+              'NONE': '101010'}
+
+    options = {'colors': colors}
   
-    html = displacy.render(display_dict, manual=True, style='ent')
+    html = displacy.render(display_dict, 
+                            manual=True, style='ent', options=options)
     display(HTML(html))
