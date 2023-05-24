@@ -27,7 +27,7 @@ class DataPreprocessor:
         - text decapitalization (transforming to lower case)
         - punctuation removal
         - stopwords removal
-        - word noramlization
+        - word normalization
         '''
         self.lemmatizer = lemmatizer
         self.remove_punctuation = remove_punctuation
@@ -277,6 +277,7 @@ class ContextExtractor:
 
         new_dataset = []
 
+        print('Extracting context...')
         for idx in tqdm(data.index):
             whole_text = data.loc[idx]['data']
             for annotation in data.loc[idx]['annotations']:
