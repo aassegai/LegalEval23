@@ -123,7 +123,7 @@ class TransformerTrainer:
             optim = self.params['optimizer'] if 'optimizer' in self.params.keys() else 'adamw_torch', # avoids optimizer warnings
             full_determinism=True,
             logging_steps=100,
-            label_smoothing=0.25
+            label_smoothing_factor=0.25
         )
 
         trainer = Trainer(
