@@ -49,10 +49,12 @@ class TransformerTrainer:
                                           num_labels=self.num_labels,
                                           id2label = self.id2label,
                                           label2id = self.label2id)
+                                          
             model.bert.config.eos_token_id = tokenizer.eos_token_id
             model.bert.config.pad_token_id = tokenizer.pad_token_id
             model.bert.config.cls_token_id = tokenizer.cls_token_id
-            model.bert.config.max_new_tokens = model.bert.config.max_length = self.max_seq_len
+            model.bert.config.max_new_tokens = self.max_seq_len 
+            model.bert.config.max_length = self.max_seq_len
 
         else:
             model = AutoModelForSequenceClassification.from_pretrained(self.bert_name,
@@ -63,8 +65,8 @@ class TransformerTrainer:
             model.config.eos_token_id = tokenizer.eos_token_id
             model.config.pad_token_id = tokenizer.pad_token_id
             model.config.cls_token_id = tokenizer.cls_token_id
-            model.config.max_new_tokens = model.config.max_length = self.max_seq_len
-
+            model.config.max_new_tokens = self.max_seq_len
+            model.config.max_length = self.max_seq_len
         return model, tokenizer
 
     def make_output_dir_name(self, custom_dir: str = None):
@@ -81,12 +83,12 @@ class TransformerTrainer:
         preds, labels = eval_pred
         preds = np.argmax(preds, axis=1)
 
-        precision_score = evaluate.load('precision')
-        precision = precision_score.compute(predictions=preds, references=labels, average='weighted')['precision']
-        recall_score = evaluate.load('recall')
-        recall = recall_score.compute(predictions=preds, references=labels, average='weighted')['recall']    
-        f1_score = evaluate.load('f1')
-        weighted_f1 = f1_score.compute(predictions=preds, references=labels, average='weighted')['f1']
+        precision_fn = evaluate.load('precision')
+        precision = precision_fn.compute(predictions=preds, references=labels, average='weighted')['precision']
+        recall_fn = evaluate.load('recall')
+        recall = recall_fn.compute(predictions=preds, references=labels, average='weighted')['recall']    
+        f1_fn = evaluate.load('f1')
+        weighted_f1 = f1_fn.compute(predictions=preds, references=labels, average='weighted')['f1']
 
         return {
             'precison': precision,
@@ -115,7 +117,7 @@ class TransformerTrainer:
             save_strategy="epoch",
             load_best_model_at_end=True,
             eval_steps=1, 
-            fp16=self.params['do_fp16'],  # maybe it will speed up the training a bit
+            fp16=self.params['do_fp16'] if 'do_fp16' in self.params.keys() else True,  # maybe it will speed up the training a bit
             auto_find_batch_size=True, 
             dataloader_num_workers=self.params['num_workers'],
             optim = self.params['optimizer'] if 'optimizer' in self.params.keys() else 'adamw_torch', # avoids optimizer warnings
