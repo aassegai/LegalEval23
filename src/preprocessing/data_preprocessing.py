@@ -12,13 +12,23 @@ stopwords = nltk.corpus.stopwords.words('english')
 
 lemmatizer = WordNetLemmatizer()
 
-
 class DataPreprocessor:
+
     def __init__(self, lemmatizer=lemmatizer,
                  remove_punctuation=False,
                  lemmatize=False,
                  lower=False,
                  remove_stopwords=False):
+        '''
+        Given the raw data build more comfortable data structure 
+        and transforms the text in it with options below, 
+        returns the preprocessed dataframe.
+        Options:
+        - text decapitalization (transforming to lower case)
+        - punctuation removal
+        - stopwords removal
+        - word noramlization
+        '''
         self.lemmatizer = lemmatizer
         self.remove_punctuation = remove_punctuation
         self.lemmatize = lemmatize
@@ -26,6 +36,9 @@ class DataPreprocessor:
         self.remove_stopwords = remove_stopwords
     
     def filter_annotations(self, annotations):
+        '''
+        Removes unnecessary data from annotations.
+        '''
         new_annotations = []
         for annotation in annotations:
             # print(annotation)
@@ -43,6 +56,9 @@ class DataPreprocessor:
         return new_annotations
 
     def preprocess_text(self, texts, annotations):
+        '''
+        Given the text and annotations preprocesses it in parallel.
+        '''
         new_texts = []
         new_annotations = []
         for i in tqdm(texts.index):
@@ -133,74 +149,51 @@ class DFTransformer:
     def get_token_level_idx(self, text: str,
                    char_index: int) -> int:
         """
-          Converts the given char_index its equivalent word_index in the given text.
-
-          Params:
-            - text: text useful to convert the char_index
-            - char_index: char position in the given text
-
-          Returns:
-            - word_index: equivalent word position the given text
+          Converts the given char_index its equivalent token level index 
+          in the given text.
         """
         if char_index == 0:
             return 0
 
-        # Find the previous and next spaces around the index
+        # Find the previous and next spaces around the given index
         previous_space_idx = text[:char_index].rfind(' ')
         next_space_idx = text[char_index:].find(' ')
 
-        # If both are found
-        if previous_space_idx != -1 and next_space_idx != -1:
+        # If the previous space is found
+        if previous_space_idx != -1:
             # Count the number of words before the current word
-            token_level_index = len(re.findall(r'\b\S+\b', text[:previous_space_idx]))
-            return token_level_index
-
-        # If only the previous space is found
-        elif previous_space_idx != -1:
-            # Count the number of words before the current word
-            token_level_index = len(re.findall(r'\b\S+\b', text[:previous_space_idx]))
+            token_level_index = len(text[:previous_space_idx].split())
             return token_level_index
 
         # If only the next space is found
         elif next_space_idx != -1:
             # Count the number of words before the next word
-            token_level_index = len(re.findall(r'\b\S+\b', text[:char_index]))
+            token_level_index = len(text[:char_index].split())
             return token_level_index - 1
 
         # If no space is found
         else:
             # Count the number of words before the next word
-            token_level_index = len(re.findall(r'\b\S+\b', text[:char_index]))
+            token_level_index = len(text[:char_index].split())
             return token_level_index
 
 
-    def extract_sentence_context(self, text: str,
+    def extract_context(self, text: str,
                                  sentence: str,
                                  span_start: int,
                                  span_end: int) -> str:
         """
-          Given the sentence, it extracts the context of the sentence
-          from the text, that fits the transformer
-
-          Params:
-            text: text useful to extract the context
-            sentence: sentence
-            span_start: start position of the sentence at char-level
-            span_end: end position of the sentence at char-level
-
-          Returns:
-            context: context string, including the sentence
+          Given the text substring, it extracts the context of the sentence
+          of given length from the text.
         """
 
         context = []
 
-        # Positions at word-level
         span_start = self.get_token_level_idx(text, span_start)
         span_end = self.get_token_level_idx(text, span_end)
 
-        # Divide the given string into words, deleting space characters
-        text = re.findall(r'\b\S+\b', text)
-        sentence = re.findall(r'\b\S+\b', sentence)
+        text = text.split()
+        sentence = sentence.split()
         sentence_len = len(sentence)
 
          
@@ -209,8 +202,6 @@ class DFTransformer:
         if window_len <= 0:
             return " ".join(context)
 
-
-        # First sentence
         if span_start <= 0:
             context += sentence
 
@@ -221,7 +212,6 @@ class DFTransformer:
 
             return " ".join(context)
 
-        # Last sentence
         if span_end >= len(text):
             idx = span_start - window_len * 2
             while idx < span_start:
@@ -232,7 +222,6 @@ class DFTransformer:
 
             return " ".join(context)
 
-        # Left context smaller than window
         if span_start < window_len:
             idx = 0
             while idx < span_start:
@@ -248,7 +237,6 @@ class DFTransformer:
 
             return " ".join(context)
 
-        # Right context smaller than window
         if window_len > (len(text) - span_end):
             idx = span_start - window_len - (window_len - (len(text) - span_end))
             while idx < span_start:
@@ -264,7 +252,6 @@ class DFTransformer:
 
             return " ".join(context)
 
-        # Append left context
         idx = span_start - window_len
         while idx < span_start:
             context.append(text[idx])
@@ -272,7 +259,6 @@ class DFTransformer:
 
         context += sentence
 
-        # Append right contenxt
         idx = span_end + 1
         while idx < span_end + window_len:
             context.append(text[idx])
@@ -283,13 +269,8 @@ class DFTransformer:
 
     def __call__(self, data: pd.DataFrame) -> pd.DataFrame:
         """
-          Given the dataset, extract useful columns from the dataset and converts it into a Pandas DataFrame
-
-          Params:
-            data: dataset
-
-          Returns:
-            new_dataset: DataFrame with the useful columns extracted from the given dataset
+          Given the preprocessed data transforms it into the 
+          set of sentences needed to classify with their context
         """
 
         columns = ['doc_id', 'text', 'context', 'sentence', 'label']
@@ -306,7 +287,7 @@ class DFTransformer:
 
                 row = [idx, 
                        whole_text,
-                       self.extract_sentence_context(whole_text, annotation_text, 
+                       self.extract_context(whole_text, annotation_text, 
                        annotation_start, annotation_end), 
                        annotation_text,
                        annotation_label[0]
@@ -316,8 +297,6 @@ class DFTransformer:
                 new_dataset.append(row)
 
         new_dataset = pd.DataFrame(new_dataset, columns=columns)
-
-        # Drop duplicates
         new_dataset.drop_duplicates(['text', 'sentence'], inplace=True)
 
         return new_dataset
