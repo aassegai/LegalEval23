@@ -122,7 +122,8 @@ class TransformerTrainer:
             dataloader_num_workers=self.params['num_workers'],
             optim = self.params['optimizer'] if 'optimizer' in self.params.keys() else 'adamw_torch', # avoids optimizer warnings
             full_determinism=True,
-            logging_steps=100
+            logging_steps=100,
+            label_smoothing=0.25
         )
 
         trainer = Trainer(
