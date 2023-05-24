@@ -23,7 +23,8 @@ class GRUClassifier(nn.Module):
                                               use_cache=False)
 
         self.dropout = nn.Dropout(dropout)
-        self.gru_1 = nn.GRU(self.bert.config.hidden_size, 256, batch_first=True, num_layers=3, bidirectional=True)
+        self.gru = nn.GRU(self.bert.config.hidden_size, 256, 
+                          batch_first=True, num_layers=3, bidirectional=True)
         self.dropout2 = nn.Dropout(dropout)
         self.classifier = nn.Linear(512, self.num_labels)
         self.max_seq_len = max_seq_len
@@ -38,9 +39,8 @@ class GRUClassifier(nn.Module):
         
         output = self.dropout(hidden_state[0])
 
-
         # (batch_size, seq_len, hidden_size)
-        gru_output, _ = self.gru_1(output)
+        gru_output, _ = self.gru(output)
 
         # (batch_size, hidden_size)
         gru_sent_emb = torch.mean(gru_output, dim=1)
