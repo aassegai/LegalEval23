@@ -3,7 +3,7 @@ import pandas as pd
 from tqdm.auto import tqdm
 from IPython.core.display import display, HTML
 from matplotlib import pyplot as plt
-
+import numoy as np
 
 def make_annotation(data,
                    predictions):
