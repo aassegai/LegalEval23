@@ -50,10 +50,13 @@ class DatasetBuilder:
         self.id2label = id2label
 
     def tokenize_batch(self, batch):
+        '''
+        For given batch of text returns tokenized batch.
+        '''
         tokenized = self.tokenizer(batch['sentence'],
                             batch['context'],
                             padding="max_length",
-                            truncation=True,  # truncate the longest
+                            truncation=True,  
                             max_length=self.max_seq_len)
 
         return tokenized
@@ -61,15 +64,17 @@ class DatasetBuilder:
 
     def build_dataset(self, dataframe: pd.DataFrame, for_test:bool=False):
 
-        # avoid possible confilct with other training
+        '''
+        Given dataframe returns prepared for model use Dataset.
+        '''
         df = dataframe.copy()
 
-        print("Processing...")
+        print("Building dataset...")
 
-        # remap labels to ids
         if 'label' in dataframe.columns:
             df['label'] = dataframe['label'].apply(lambda x: self.label2id[x])
         raw_dataset = Dataset.from_pandas(df)
+
 
         prepared_dataset = raw_dataset.map(
             self.tokenize_batch,
