@@ -123,7 +123,7 @@ class DataPreprocessor:
 
 
     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
-        self.dataframe = df.copy()
+        self.dataframe = df
         self.dataframe['annotations'] = self.filter_annotations(df['annotations'])
         new_texts, new_annotations = self.preprocess_text(df.data, df.annotations)
         
@@ -267,7 +267,7 @@ class ContextExtractor:
         return " ".join(context)
 
 
-    def __call__(self, data: pd.DataFrame) -> pd.DataFrame:
+    def __call__(self, data: pd.DataFrame, for_test=False) -> pd.DataFrame:
         """
           Given the preprocessed data transforms it into the 
           set of sentences needed to classify with their context
@@ -298,7 +298,8 @@ class ContextExtractor:
                 new_dataset.append(row)
 
         new_dataset = pd.DataFrame(new_dataset, columns=columns)
-        new_dataset.drop_duplicates(['text', 'sentence'], inplace=True)
+        if not for_test:
+            new_dataset.drop_duplicates(['text', 'sentence'], inplace=True)
 
         return new_dataset
 
