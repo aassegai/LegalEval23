@@ -142,7 +142,7 @@ class DataPreprocessor:
 
 
 
-class DFTransformer:
+class ContextExtractor:
     def __init__(self, max_context_len=512):
         self.max_context_len = max_context_len
 
