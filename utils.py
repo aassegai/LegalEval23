@@ -2,6 +2,7 @@ from spacy import displacy
 import pandas as pd
 from tqdm.auto import tqdm
 from IPython.core.display import display, HTML
+from matplotlib import pyplot as plt
 
 
 def make_annotation(data,
@@ -49,3 +50,31 @@ def show_text_segmentation(doc, annotation):
     html = displacy.render(display_dict, 
                             manual=True, style='ent', options=options)
     display(HTML(html))
+
+
+def aggregate_label_stats(df: pd.DataFrame):
+    temp_df = df.copy()
+
+    stats_df = temp_df.groupby(['label']).count()
+    temp_df['sentence_len'] = temp_df['sentence'].apply(lambda x: len(x.split()))
+    stats_df['mean_sentence_len'] = temp_df.groupby(['label']).mean(['sentence_len']).sentence_len
+    stats_df['max_sentence_len'] = temp_df.groupby(['label']).max(['sentence_len']).sentence_len
+
+    temp_df['context_len'] = temp_df['context'].apply(lambda x: len(x.split()))
+    stats_df['mean_context_len'] = temp_df.groupby(['label']).mean(['context_len']).context_len
+    
+    stats_df.drop(columns=['text', 'context', 'sentence'], inplace=True)
+    stats_df.rename(columns={'doc_id': 'count'}, inplace=True)
+    stats_df.reset_index(inplace=True)
+
+
+    return stats_df
+
+
+def display_label_counts(df: pd.DataFrame):
+
+    fig, ax = plt.subplots(1, 1, figsize=(20, 5))
+    labels_list = df['label'].to_list()
+    for label in set(labels_list):
+        plt.hist([label_item for label_item in labels_list if label_item == label], bins=np.arange(14)-0.5, rwidth=0.5)
+    plt.show()
