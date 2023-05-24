@@ -123,7 +123,7 @@ class DataPreprocessor:
 
 
     def __call__(self, df: pd.DataFrame) -> pd.DataFrame:
-        self.dataframe = df
+        self.dataframe = df.copy()
         self.dataframe['annotations'] = self.filter_annotations(df['annotations'])
         new_texts, new_annotations = self.preprocess_text(df.data, df.annotations)
         
