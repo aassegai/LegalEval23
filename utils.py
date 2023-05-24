@@ -6,15 +6,15 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 def make_annotation(data,
-                   predictions):
+                   predictions, id2label):
 
-    new_data = data
+    new_data = data.copy()
 
     idx = 0
 
     for _, doc in new_data.iterrows():
         for sentence in doc.annotations:
-            sentence['label'][0] = predictions[idx]
+            sentence['label'][0] = id2label[predictions[idx]]
             idx += 1
 
     return new_data
