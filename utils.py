@@ -75,7 +75,6 @@ def display_label_counts(df: pd.DataFrame):
 
     fig, ax = plt.subplots(1, 1, figsize=(20, 5))
     labels_list = df['label'].to_list()
-    print(set(labels_list))
     for label in sorted(set(labels_list)):
         plt.hist([label_item for label_item in labels_list if label_item == label], bins=np.arange(14)-0.5, rwidth=0.5)
     plt.show()
