@@ -9,14 +9,16 @@ from transformers import (AutoTokenizer,
 import evaluate
 import torch
 from torch import nn
-from src.model.classification.gru_classifier import GRUClassifier
+from src.model.classification  import gru_classifier
 
 '''
 This module is needed to unify all models training. 
 The class TransformerTrainer loads the model 
 and then fits it with given set of parameters and datasets using HF Trainer.
 '''
+import importlib
 
+importlib.reload(gru_classifier)
 
 
 class TransformerTrainer:
@@ -45,7 +47,7 @@ class TransformerTrainer:
         print("Loading :", self.bert_name)
 
         if self.custom:
-            model = GRUClassifier(bert_name=self.bert_name,
+            model = gru_classifier.GRUClassifier(bert_name=self.bert_name,
                                           num_labels=self.num_labels,
                                           id2label = self.id2label,
                                           label2id = self.label2id)
@@ -105,6 +107,12 @@ class TransformerTrainer:
 
         model, tokenizer = self.load_model()
 
+        if self.custom:
+            label_smoothing = 0
+        else:
+            label_smoothing = self.params['smoothing'] if 'smoothing' in self.params.keys() else 0.15
+
+
         path = self.make_output_dir_name()
         training_args = TrainingArguments(
             output_dir=path,
@@ -120,10 +128,10 @@ class TransformerTrainer:
             fp16=self.params['do_fp16'] if 'do_fp16' in self.params.keys() else True,  # maybe it will speed up the training a bit
             auto_find_batch_size=True, 
             dataloader_num_workers=self.params['num_workers'],
-            optim = self.params['optimizer'] if 'optimizer' in self.params.keys() else 'adamw_torch', # avoids optimizer warnings
+            optim = self.params['optimizer'] if 'optimizer' in self.params.keys() else 'adamw_torch', 
             full_determinism=True,
             logging_steps=100,
-            label_smoothing_factor=self.params['smoothing'] if 'smoothing' in self.params.keys() else 0.15
+            label_smoothing_factor=label_smoothing
         )
 
         trainer = Trainer(
