@@ -6,9 +6,9 @@ This repository is aimed at solving subtask A of LegalEval task during SemEval 2
 This module contains technical scripts for output representation
 ### [data](/data/raw)
 Competition dataset inside
-###[src/datasets](/src/datasets)
+### [src/datasets](/src/datasets)
 Contains modules for dataset construction
-###[src/model](/src/model)
+### [src/model](/src/model)
 Contains custom trainer module and a folder for custom model architectures.
-###[src/preprocessing](/src/preprocessing)
+### [src/preprocessing](/src/preprocessing)
 Contains data preprocessing scripts 
