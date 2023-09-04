@@ -7,6 +7,7 @@ nltk.download('omw-1.4')
 nltk.download('stopwords')
 from nltk.stem import WordNetLemmatizer
 from tqdm.auto import tqdm 
+from transformers import AutoTokenizer
 
 stopwords = nltk.corpus.stopwords.words('english')
 
@@ -348,7 +349,7 @@ def adapt_indexes_without_spaces(row):
 
 
 
-def make_bio_tagging(row : dict, tokenizer : AutoTokenizer):
+def make_bio_tagging(row : dict, tokenizer_name : str):
     """
       Tokenizes the input context and assignes a label to each token, solving the
       misalignment between labeled words and sub-tokens.
@@ -362,6 +363,7 @@ def make_bio_tagging(row : dict, tokenizer : AutoTokenizer):
     # compute new start/end indexes without considering white spaces
     char_wise_start, char_wise_end = adapt_indexes_without_spaces(row)
 
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, add_prefix_space=True, use_fast=True)
     # standard tokenization applied
     tokens_context = tokenizer.tokenize(row['data'], truncation=True, max_length=10000)
 
