@@ -404,7 +404,7 @@ def make_bio_tagging(row : dict, tokenizer_name : str):
       # update pointer
       actual_char_index += len(clean_tok)
 
-    return list(zip(tokens_context, labels))
+    return tokens_context, labels
 
 
 
