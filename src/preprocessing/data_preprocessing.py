@@ -304,112 +304,136 @@ class ContextExtractor:
 
         return new_dataset
 
+default_tokenizer = 'law-ai/InLegalBERT'
+class BIOTagger():
 
-def adapt_indexes_without_spaces(row):
-    """
-    This function is very similar to the clean data one, it basically removes any possible space and adapt the start/end indexes consequently.
-    We need this new start/end since the labeling step will work character wise, so we don't want to count spaces.
-    """
-    start = [annotation['start'] for annotation in row.annotations]
-    end = [annotation['end'] for annotation in row.annotations]
-    context = row.data
-    text = [annotation['text'] for annotation in row.annotations]
-
-    new_start, new_end, new_text = [], [], []
-
-    # for each start-end index
-    for s,e in zip(start,end):
-
-        # extract the context until the start of the text
-        tmp = context[:s]
-        # compute the difference between the length of the context and of the cleaned context
-        len_before = len(tmp)
-
-        tmp_stripped = re.sub('\s', '', tmp)
-
-        len_after = len(tmp_stripped)
-
-        to_remove_first = len_before - len_after
-        # define the new start index
-        new_start.append(s-to_remove_first)
-
-        # extract the context between the indices
-        tmp = context[s:e]
-        # compute the difference between the length of the context and of the cleaned context
-        len_before = len(tmp)
-        tmp_stripped = re.sub('\s', '', tmp)
-        len_after = len(tmp_stripped)
-        to_remove_after = len_before - len_after
-        # # define the new end index
-        new_end.append(e - (to_remove_first + to_remove_after))
-
-        new_text.append(tmp_stripped)
-
-    return new_start, new_end
+    def __init__(self, tokenizer_name=default_tokenizer):
+        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, add_prefix_space=True, use_fast=True)
 
 
+    def adapt_indexes_without_spaces(self, row):
+        """
+        This function is very similar to the clean data one, it basically removes any possible space and adapt the start/end indexes consequently.
+        We need this new start/end since the labeling step will work character wise, so we don't want to count spaces.
+        """
+        start = [annotation['start'] for annotation in row.annotations]
+        end = [annotation['end'] for annotation in row.annotations]
+        context = row.data
+        text = [annotation['text'] for annotation in row.annotations]
 
-def make_bio_tagging(row : dict, tokenizer_name : str):
-    """
-      Tokenizes the input context and assignes a label to each token, solving the
-      misalignment between labeled words and sub-tokens.
+        new_start, new_end, new_text = [], [], []
 
-      Params:
-        row : DataFrame row to tokenize
-        tokenizer : Tokenizer to use
-      Returns:
-        context tokenized and associated labels in B-I-O format.
-    """
-    # compute new start/end indexes without considering white spaces
-    char_wise_start, char_wise_end = adapt_indexes_without_spaces(row)
+        # for each start-end index
+        for s,e in zip(start,end):
 
-    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, add_prefix_space=True, use_fast=True)
-    # standard tokenization applied
-    tokens_context = tokenizer.tokenize(row['data'], truncation=True, max_length=10000)
+            # extract the context until the start of the text
+            tmp = context[:s]
+            # compute the difference between the length of the context and of the cleaned context
+            len_before = len(tmp)
 
-    # our result vector with a label for each token
-    labels = ['O'] * len(tokens_context)
+            tmp_stripped = re.sub('\s', '', tmp)
 
-    # keep track of labels alreay assigned to token, distinguish between "B-" and "I-" labels
-    labels_in_text = [annotation['label'][0] for annotation in row.annotations]
-    mask_label_used = [False] * len(labels_in_text)
+            len_after = len(tmp_stripped)
 
-    # "pointer" (in the whole context without spaces) to first character of the current token
-    actual_char_index = 0
+            to_remove_first = len_before - len_after
+            # define the new start index
+            new_start.append(s-to_remove_first)
 
-    # most transformers' tokenizers add a special character to the first sub-token of a word
-    # dummy tokenization to retrieve it
-    init_special_char = tokenizer.tokenize('dummy')[0][0]
-    if init_special_char == 'd':
-      # bert models do not use special char for first sub-token, they use ## for all the other sub-tokens
-      init_special_char = '##'
+            # extract the context between the indices
+            tmp = context[s:e]
+            # compute the difference between the length of the context and of the cleaned context
+            len_before = len(tmp)
+            tmp_stripped = re.sub('\s', '', tmp)
+            len_after = len(tmp_stripped)
+            to_remove_after = len_before - len_after
+            # # define the new end index
+            new_end.append(e - (to_remove_first + to_remove_after))
 
-    for _, token in enumerate(tokens_context):
-      # remove init character if present
-      clean_tok = token.replace(init_special_char, "")
+            new_text.append(tmp_stripped)
 
-      for lbl_index , (start, end , label) in enumerate(zip(char_wise_start, char_wise_end, labels_in_text)):
-        # check if the pointer is inside an entity
-        if actual_char_index in range(start,end):
-          if mask_label_used[lbl_index] == False:
-            # first time we assign the label to a token
-            labels[_] = "B-" + label
-            # mark it as already assigned, next time will be "I-"
-            mask_label_used[lbl_index] = True
-          else:
-            # the label has been already assigned to a token
-            labels[_] = "I-" + label
-          # once we have found the label we can skip the other checks
-          break
-      # update pointer
-      actual_char_index += len(clean_tok)
-
-    return tokens_context, labels
+        return new_start, new_end
 
 
 
+    def make_bio_tagging(self, row : dict):
+        """
+          Tokenizes the input context and assignes a label to each token, solving the
+          misalignment between labeled words and sub-tokens.
 
+          Params:
+            row : DataFrame row to tokenize
+            tokenizer : Tokenizer to use
+          Returns:
+            context tokenized and associated labels in B-I-O format.
+        """
+        # compute new start/end indexes without considering white spaces
+        char_wise_start, char_wise_end = self.adapt_indexes_without_spaces(row)
 
+        # standard tokenization applied
+        tokens_context = self.tokenizer.tokenize(row['data'], truncation=True, max_length=10000)
 
+        # our result vector with a label for each token
+        labels = ['O'] * len(tokens_context)
 
+        # keep track of labels alreay assigned to token, distinguish between "B-" and "I-" labels
+        labels_in_text = [annotation['label'][0] for annotation in row.annotations]
+        mask_label_used = [False] * len(labels_in_text)
+
+        # "pointer" (in the whole context without spaces) to first character of the current token
+        actual_char_index = 0
+
+        # most transformers' tokenizers add a special character to the first sub-token of a word
+        # dummy tokenization to retrieve it
+        init_special_char = self.tokenizer.tokenize('dummy')[0][0]
+        if init_special_char == 'd':
+          # bert models do not use special char for first sub-token, they use ## for all the other sub-tokens
+          init_special_char = '##'
+
+        for _, token in enumerate(tokens_context):
+          # remove init character if present
+          clean_tok = token.replace(init_special_char, "")
+
+          for lbl_index , (start, end , label) in enumerate(zip(char_wise_start, char_wise_end, labels_in_text)):
+            # check if the pointer is inside an entity
+            if actual_char_index in range(start,end):
+              if mask_label_used[lbl_index] == False:
+                # first time we assign the label to a token
+                labels[_] = "B-" + label
+                # mark it as already assigned, next time will be "I-"
+                mask_label_used[lbl_index] = True
+              else:
+                # the label has been already assigned to a token
+                labels[_] = "I-" + label
+              # once we have found the label we can skip the other checks
+              break
+          # update pointer
+          actual_char_index += len(clean_tok)
+
+        return tokens_context, labels
+
+    
+    def transform(self, df : pd.DataFrame, copy=False):
+        tokens = []
+        labels = []
+        for idx, row in tqdm(df.iterrows(), total=df.shape[0]):
+            tok, lab = self.make_bio_tagging(row)
+            tokens.append(tok)
+            labels.append(lab)
+
+        if copy:
+            return_df = df.copy()
+            return_df['tokens'] = tokens
+            return_df['labels'] = labels
+            return return_df
+
+        else:
+            return_df = df
+            return_df['tokens'] = tokens
+            return_df['labels'] = labels
+            return return_df
             
+
+
+
+
+                
