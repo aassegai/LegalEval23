@@ -10,6 +10,8 @@ from tqdm.auto import tqdm
 from transformers import AutoTokenizer
 
 stopwords = nltk.corpus.stopwords.words('english')
+symbols_to_remove = [':', '&', '*', '@', '*', '-', '—',
+                     '/', '"\"', '"#"', '`', '~', '$']
 
 lemmatizer = WordNetLemmatizer()
 
@@ -19,7 +21,8 @@ class DataPreprocessor:
                  remove_punctuation=False,
                  lemmatize=False,
                  lower=False,
-                 remove_stopwords=False):
+                 remove_stopwords=False,
+                 remove_additional_symbols=False):
         '''
         Given the raw data build more comfortable data structure 
         and transforms the text in it with options below, 
@@ -35,6 +38,7 @@ class DataPreprocessor:
         self.lemmatize = lemmatize
         self.lower = lower
         self.remove_stopwords = remove_stopwords
+        self.remove_additional_symbols = remove_additional_symbols
     
     def filter_annotations(self, annotations):
         '''
@@ -64,6 +68,10 @@ class DataPreprocessor:
         new_annotations = []
         for i in tqdm(texts.index):
             temp_text = texts[i]['text'].replace('\n', ' ').strip()
+            if self.remove_additional_symbols:
+                for symbol in symbols_to_remove:
+                    temp_text = temp_text.replace(symbol, ' ')
+            
             if self.lower:
                 temp_text = temp_text.lower()
             if self.remove_punctuation:
@@ -89,6 +97,10 @@ class DataPreprocessor:
             for segment in annotations[i]['result']:
                 # print(segment['value']['text'])
                 temp_segment = segment['value']['text'].strip().replace('\n', ' ')
+                if self.remove_additional_symbols:
+                    for symbol in symbols_to_remove:
+                        temp_segment = temp_segment.replace(symbol, ' ')  
+                                    
                 if self.lower:
                     temp_segment = temp_segment.lower()
                 # print(segment['value']['text'])
