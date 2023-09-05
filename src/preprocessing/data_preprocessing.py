@@ -13,6 +13,50 @@ stopwords = nltk.corpus.stopwords.words('english')
 symbols_to_remove = [':', '&', '*', '@', '*', '-', '—',
                      '/', '"\"', '"#"', '`', '~', '$']
 
+label2id = {'PREAMBLE': 1,
+            'FAC': 2,
+            'RLC': 3,
+            'ISSUE': 4,
+            'ARG_PETITIONER': 5,
+            'ARG_RESPONDENT': 6,
+            'ANALYSIS': 7,
+            'STA': 8,
+            'PRE_RELIED': 9,
+            'PRE_NOT_RELIED': 10,
+            'RATIO': 11,
+            'RPC': 12,
+            'NONE': 0
+}
+
+id2label = {1: 'PREAMBLE',
+            2: 'FAC',
+            3: 'RLC',
+            4: 'ISSUE',
+            5: 'ARG_PETITIONER',
+            6: 'ARG_RESPONDENT',
+            7: 'ANALYSIS',
+            8: 'STA',
+            9: 'PRE_RELIED',
+            10: 'PRE_NOT_RELIED',
+            11: 'RATIO',
+            12: 'RPC',
+            13: 'NONE'
+}
+
+class_list = ['O']
+bio2id = {}
+id2bio = {}
+for k in label2id.keys():
+    b_key = 'B-' + k
+    i_key = 'I-' + k
+    class_list.extend([b_key, i_key])
+
+
+for idx, key in enumerate(class_list):
+    bio2id[key] = idx
+    id2bio[idx] = key
+
+
 lemmatizer = WordNetLemmatizer()
 
 class DataPreprocessor:
@@ -424,13 +468,17 @@ class BIOTagger():
         return tokens_context, labels
 
     
-    def transform(self, df : pd.DataFrame, copy=False):
+    def transform(self, df : pd.DataFrame, copy=False, encode_labels=True):
         tokens = []
         labels = []
         for idx, row in tqdm(df.iterrows(), total=df.shape[0]):
             tok, lab = self.make_bio_tagging(row)
             tokens.append(tok)
-            labels.append(lab)
+            if encode_labels:
+                lab = [bio2id[l] for l in lab]
+                labels.append(lab)
+            else:
+                labels.append(lab)
 
         if copy:
             return_df = df.copy()
