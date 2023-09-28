@@ -1,0 +1,58 @@
+{
+    "os": "Linux-5.15.120+-x86_64-with-glibc2.35",
+    "python": "3.10.12",
+    "heartbeatAt": "2023-09-28T04:44:15.088191",
+    "startedAt": "2023-09-28T04:44:12.281598",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "LegalNER.ipynb",
+    "codePathLocal": null,
+    "colab": "https://colab.research.google.com/notebook#fileId=1JciyQFhALuL-LEfxyjsNYrsnr1pjc_Us",
+    "git": {
+        "remote": "git@github.com:aassegai/LegalEval23.git",
+        "commit": "42fcc411d22adaaa0465cdeb7673c28b9a0e4a94"
+    },
+    "email": "chebupelka4@gmail.com",
+    "root": "/content/LegalEval23",
+    "host": "b752bf8deef2",
+    "username": "root",
+    "executable": "/usr/bin/python3",
+    "cpu_count": 1,
+    "cpu_count_logical": 2,
+    "cpu_freq": {
+        "current": 2000.176,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2000.176,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2000.176,
+            "min": 0.0,
+            "max": 0.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 78.1898422241211,
+            "used": 27.606082916259766
+        }
+    },
+    "gpu": "Tesla T4",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "Tesla T4",
+            "memory_total": 16106127360
+        }
+    ],
+    "memory": {
+        "total": 12.678337097167969
+    }
+}

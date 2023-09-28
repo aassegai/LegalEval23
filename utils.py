@@ -79,3 +79,28 @@ def display_label_counts(df: pd.DataFrame):
         plt.hist([label_item for label_item in labels_list if label_item == label], 
         bins=np.arange(14)-0.5, rwidth=0.8)
     plt.show()
+
+
+
+class SiameseArguments():
+    def __init__(self, args_dict: dict):
+        self.viterbi = args_dict['viterbi']
+        self.lstm = args_dict['lstm']
+        self.file_path = args_dict['file_path']
+        self.encoder_model = args_dict['encoder_model']
+        self.encoder_pretrained_path = args_dict['encoder_pretrained_path']
+        self.model_pretrained_path = args_dict['model_pretrained_path']
+        self.train_max_pairs = args_dict['train_max_pairs']
+        self.val_max_pairs = args_dict['val_max_pairs']
+        self.max_instances = args_dict['max_instances']
+
+
+class NerArguments():
+    def __init__(self, args_dict: dict):
+        self.viterbi = args_dict['viterbi']
+        self.lstm = args_dict['lstm']
+        self.file_path = args_dict['file_path']
+        self.encoder_model = args_dict['encoder_model']
+        self.encoder_pretrained_path = args_dict['encoder_pretrained_path']
+        self.model_pretrained_path = args_dict['model_pretrained_path']
+        self.max_instances = args_dict['max_instances']
