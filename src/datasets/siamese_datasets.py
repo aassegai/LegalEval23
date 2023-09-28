@@ -67,16 +67,17 @@ class CoNLLDataset(Dataset):
                  viterbi_algorithm: bool = True,
                  label_pad_token_id: int = -100,
                  label2id: dict = bio2id,
-                 id2label: dict = id2bio
+                 id2label: dict = id2bio, 
+                 window_size = 2000
                  ):
         self.data = dataframe.copy()
         self.max_instances = max_instances
         self.max_length = max_length
         self.label_to_id = label2id
         self.id_to_label = id2label
-
+        self.window_size = window_size
         self.encoder_model = encoder_model
-        self.tokenizer = AutoTokenizer.from_pretrained(self.encoder_model, model_max_length=self.max_length)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.encoder_model)
 
         self.pad_token = self.tokenizer.special_tokens_map['pad_token']
         self.pad_token_id = self.tokenizer.get_vocab()[self.pad_token]
@@ -112,15 +113,29 @@ class CoNLLDataset(Dataset):
                 break
 
             sentence_words, tags = row['tokens'], row['labels']
+            ner_tags = []
+            tokens = []
+            if self.window_size and len(tags) > self.window_size:
+               for start in range(0, len(tags) - 1, self.window_size // 2): # stride half window length
+                    end = start + self.window_size - 2
 
-            tokenized_inputs = self.tokenizer(sentence_words, truncation=True, is_split_into_words=True)
-            input_ids = torch.tensor(tokenized_inputs['input_ids'], dtype=torch.long)
-            labels = torch.tensor(self.tokenize_and_align_labels(tokenized_inputs, tags))
-            attention_mask = torch.tensor(tokenized_inputs['attention_mask'], dtype=torch.bool)
+                    window_tokens = sentence_words[start:end]
+                    window_ner_tags = tags[start:end]
 
-            self.instances.append((input_ids, labels, attention_mask))
-            self.sentences_words.append([sentence_words, tags])
-            instance_idx += 1
+                    ner_tags.append(window_ner_tags)
+                    tokens.append(window_tokens)
+
+
+            for idx, tag in enumerate(ner_tags):
+                tokenized_inputs = self.tokenizer(tokens[idx], truncation=True, padding='max_length',
+                 is_split_into_words=True)
+                input_ids = torch.tensor(tokenized_inputs['input_ids'], dtype=torch.long)
+                labels = torch.tensor(self.tokenize_and_align_labels(tokenized_inputs, tag))
+                attention_mask = torch.tensor(tokenized_inputs['attention_mask'], dtype=torch.bool)
+
+                self.instances.append((input_ids, labels, attention_mask))
+                self.sentences_words.append([tokens[idx], tag])
+                instance_idx += 1
 
     # function from huggingface Token Classification ipynb
     # Set label for all tokens and -100 for padding and special tokens
