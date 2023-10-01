@@ -9,6 +9,7 @@ import numpy as np
 import warnings
 import pandas as pd
 import numpy as np
+import scipy.stats as st
 
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -131,6 +132,10 @@ class CoNLLDataset(Dataset):
                  is_split_into_words=True, max_length=self.window_size)
                 input_ids = torch.tensor(tokenized_inputs['input_ids'], dtype=torch.long)
                 labels = torch.tensor(self.tokenize_and_align_labels(tokenized_inputs, tag))
+                if list(labels).count(14) / len(labels) > 0.6:
+                    yes = st.binom.rvs(1, 0.7)
+                    if yes:
+                        continue
                 attention_mask = torch.tensor(tokenized_inputs['attention_mask'], dtype=torch.bool)
 
                 self.instances.append((input_ids, labels, attention_mask))
