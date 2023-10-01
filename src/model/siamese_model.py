@@ -55,27 +55,33 @@ class CoBertCRF(nn.Module):
                  label_to_id: dict,
                  dropout_rate: float = 0.1,
                  num_lstm: int = 0,
-                 lstm_hidden_size = 10000,
+                 lstm_hidden_size = 512,
                  lstm_dropout=0.3
                  ):
+        self.num_lstm = num_lstm
         super(CoBertCRF, self).__init__()
         self.tag_to_id = label_to_id
         self.id_to_tag = {v: k for k, v in self.tag_to_id.items()}
         self.target_size = len(self.id_to_tag)
-        if num_lstm:
-            self.lstm =  nn.LSTM(lstm_hidden_size, 2048, 
-            num_layers = self.num_LSTM, bidirectional=True, dropout = lstm_dropout)
+        
 
 
         self.encoder = CoBert(encoder_model, label_to_id, dropout_rate)
         if pretrained_encoder_model_path is not None:
             self.encoder.load_state_dict(torch.load(pretrained_encoder_model_path))
 
-        self.feedforward = nn.Linear(in_features=self.encoder.encoder.config.hidden_size, out_features=self.target_size)
+        if num_lstm:
+            self.lstm =  nn.LSTM(self.encoder.encoder.config.hidden_size, lstm_hidden_size, 
+                                 num_layers = self.num_lstm, bidirectional=True, dropout = lstm_dropout)
+        self.ffn_input_size = self.encoder.encoder.config.hidden_size if num_lstm==0 else self.lstm.hidden_size * 2
+        self.feedforward = nn.Linear(in_features=self.ffn_input_size
+        , out_features=self.target_size)
         self.crf = CRF(self.target_size, batch_first=True)
 
     def get_token_scores(self, input_ids: torch.Tensor, attention_mask: torch.Tensor):
         embedded_text_input = self.encoder(input_ids=input_ids, attention_mask=attention_mask)
+        if self.num_lstm:
+            embedded_text_input = self.lstm(embedded_text_input)[0]
         token_scores = self.feedforward(embedded_text_input)
         return token_scores
 
