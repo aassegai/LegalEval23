@@ -98,5 +98,6 @@ class CoBertCRF(nn.Module):
 
     def predict_tags(self, input_ids: torch.Tensor, attention_mask: torch.Tensor):
         token_scores = self.get_token_scores(input_ids=input_ids, attention_mask=attention_mask)
-        tags = self.crf.decode(emissions=token_scores, mask=attention_mask)
+
+        tags = self.crf.decode(emissions=token_scores, mask=attention_mask.bool())
         return np.array(tags)
