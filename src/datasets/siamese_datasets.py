@@ -69,7 +69,8 @@ class CoNLLDataset(Dataset):
                  label_pad_token_id: int = -100,
                  label2id: dict = bio2id,
                  id2label: dict = id2bio, 
-                 window_size = 2000
+                 window_size = 2000,
+                 drop_biggest=0
                  ):
         self.data = dataframe.copy()
         self.max_instances = max_instances
@@ -79,7 +80,7 @@ class CoNLLDataset(Dataset):
         self.window_size = window_size
         self.encoder_model = encoder_model
         self.tokenizer = AutoTokenizer.from_pretrained(self.encoder_model, padding_side='right')
-
+        self.drop_biggest = drop_biggest
         self.pad_token = self.tokenizer.special_tokens_map['pad_token']
         self.pad_token_id = self.tokenizer.get_vocab()[self.pad_token]
         self.sep_token = self.tokenizer.special_tokens_map['sep_token']
@@ -132,8 +133,8 @@ class CoNLLDataset(Dataset):
                  is_split_into_words=True, max_length=self.window_size)
                 input_ids = torch.tensor(tokenized_inputs['input_ids'], dtype=torch.long)
                 labels = torch.tensor(self.tokenize_and_align_labels(tokenized_inputs, tag))
-                if list(labels).count(14) / len(labels) > 0.6:
-                    yes = st.binom.rvs(1, 0.7)
+                if list(labels).count(14) / len(labels) > 0.6 and self.drop_biggest:
+                    yes = st.binom.rvs(1, drop_biggest)
                     if yes:
                         continue
                 attention_mask = torch.tensor(tokenized_inputs['attention_mask'], dtype=torch.bool)
