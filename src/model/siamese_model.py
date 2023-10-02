@@ -30,6 +30,7 @@ class CoBert(nn.Module):
                  encoder_model: str,
                  label_to_id: dict,
                  dropout_rate: float = 0.1,
+                 max_length=512
                  ):
         super(CoBert, self).__init__()
         self.tag_to_id = label_to_id
@@ -39,7 +40,7 @@ class CoBert(nn.Module):
         if 'xlnet' in encoder_model.lower():
             self.encoder = XLNetModel.from_pretrained(encoder_model)
         else:    
-            self.encoder = AutoModel.from_pretrained(encoder_model, return_dict=True)
+            self.encoder = AutoModel.from_pretrained(encoder_model, return_dict=True, max_length=max_length)
         self.dropout = nn.Dropout(dropout_rate)
 
     def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor):
@@ -56,7 +57,8 @@ class CoBertCRF(nn.Module):
                  dropout_rate: float = 0.1,
                  num_lstm: int = 0,
                  lstm_hidden_size = 512,
-                 lstm_dropout=0.3
+                 lstm_dropout=0.3,
+                 max_length=512
                  ):
         self.num_lstm = num_lstm
         super(CoBertCRF, self).__init__()
@@ -66,7 +68,7 @@ class CoBertCRF(nn.Module):
         
 
 
-        self.encoder = CoBert(encoder_model, label_to_id, dropout_rate)
+        self.encoder = CoBert(encoder_model, label_to_id, dropout_rate, max_length=max_length)
         if pretrained_encoder_model_path is not None:
             self.encoder.load_state_dict(torch.load(pretrained_encoder_model_path))
 
