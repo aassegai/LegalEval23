@@ -25,7 +25,7 @@ def show_text_segmentation(doc, annotation):
     for item in annotation:
         new_item = {'start': item['start'],
                     'end': item['end'],
-                    'label': item['label'][0]}
+                    'label': item['label'][0] if type(item['label'])==list else item['label']}
         display_sentences.append(new_item)
 
     display_dict = {'text': doc,
