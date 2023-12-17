@@ -211,9 +211,10 @@ class SlidingWindowNERPipeline(TokenClassificationPipeline):
     """
 
     def __init__(self, aggregation_strategy, window_length: Optional[int] = None,
-                 stride: Optional[int] = None, *args, **kwargs):
+                 stride: Optional[int] = None, viterbi=False, *args, **kwargs):
         super(SlidingWindowNERPipeline, self).__init__(
             *args, **kwargs)
+        self.viterbi = viterbi
         self.window_length = window_length or self.tokenizer.model_max_length
         if stride is None:
             self.stride = self.window_length // 2
@@ -317,9 +318,12 @@ class SlidingWindowNERPipeline(TokenClassificationPipeline):
                     entities = entities / writes
 
                     input_ids = tokens["input_ids"].cpu().numpy()[0]
-
-                    scores = np.exp(entities) / np.exp(entities).sum(
-                        -1, keepdims=True)
+                    if self.viterbi:
+                        crf = CRF(self.model.num_labels, batch_first=True)
+                        scores = crf.decode(torch.tensor(entities).float())
+                    else:    
+                        scores = np.exp(entities) / np.exp(entities).sum(
+                            -1, keepdims=True)
                     pre_entities = self.gather_pre_entities(
                         sentence, input_ids, scores, offset_mapping,
                         special_tokens_mask, aggregation_strategy=self.aggregation_strategy)
