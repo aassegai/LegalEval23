@@ -2,11 +2,13 @@ from torchcrf import CRF
 from typing import List, Optional, Tuple, Union
 import torch
 from torch import nn
+from torch.nn import functional as F
 from torch.nn import CrossEntropyLoss
 from transformers import XLNetModel, XLNetPreTrainedModel
 from transformers.models.xlnet.modeling_xlnet import XLNetForTokenClassificationOutput
 from transformers import AutoModel, AutoConfig, RobertaPreTrainedModel, RobertaModel, RobertaConfig
 from transformers.modeling_outputs import TokenClassifierOutput
+from tqdm.auto import tqdm
 
    
 class CustomRobertaForTokenClassification(RobertaPreTrainedModel):
@@ -319,11 +321,16 @@ class SlidingWindowNERPipeline(TokenClassificationPipeline):
 
                     input_ids = tokens["input_ids"].cpu().numpy()[0]
                     if self.viterbi:
+                        scores = np.exp(entities) / np.exp(entities).sum(
+                            -1, keepdims=True) 
                         crf = CRF(self.model.num_labels, batch_first=True)
-                        scores = crf.decode(torch.tensor(entities).float())
+                        # print(torch.tensor(entities).shape)
+                        scores = torch.tensor(crf.decode(torch.tensor(entities).float().reshape(1, torch.tensor(entities).shape[0], torch.tensor(entities).shape[1])))
+                        scores = F.one_hot(scores.view(-1), num_classes=self.model.num_labels).cpu().numpy()
                     else:    
                         scores = np.exp(entities) / np.exp(entities).sum(
-                            -1, keepdims=True)
+                            -1, keepdims=True) 
+                    # print(scores.shape) 
                     pre_entities = self.gather_pre_entities(
                         sentence, input_ids, scores, offset_mapping,
                         special_tokens_mask, aggregation_strategy=self.aggregation_strategy)
