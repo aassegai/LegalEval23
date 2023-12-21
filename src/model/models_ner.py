@@ -238,6 +238,37 @@ class SlidingWindowNERPipeline(TokenClassificationPipeline):
         else:
             self.aggregation_strategy = AggregationStrategy.NONE
         self.ignore_labels=["O"]
+        id2label = {}
+        for k, v in self.model.config.id2label.items():
+            if v[0] == 'L':
+                new_v = v.replace('L-', 'I-')
+            else:
+                new_v = v
+            id2label[k] = new_v
+        self.id2label = id2label
+
+    def aggregate(self, pre_entities: List[dict], aggregation_strategy: AggregationStrategy) -> List[dict]:
+        if aggregation_strategy in {AggregationStrategy.NONE, AggregationStrategy.SIMPLE}:
+            entities = []
+            for pre_entity in pre_entities:
+                entity_idx = pre_entity["scores"].argmax()
+                score = pre_entity["scores"][entity_idx]
+                entity = {
+                    "entity": self.id2label[entity_idx],
+                    "score": score,
+                    "index": pre_entity["index"],
+                    "word": pre_entity["word"],
+                    "start": pre_entity["start"],
+                    "end": pre_entity["end"],
+                }
+                entities.append(entity)
+        else:
+            entities = self.aggregate_words(pre_entities, aggregation_strategy)
+
+        if aggregation_strategy == AggregationStrategy.NONE:
+            return entities
+        return self.group_entities(entities)
+
 
     def __call__(self, inputs: Union[str, List[str]], **kwargs):
         """
@@ -334,8 +365,17 @@ class SlidingWindowNERPipeline(TokenClassificationPipeline):
                     pre_entities = self.gather_pre_entities(
                         sentence, input_ids, scores, offset_mapping,
                         special_tokens_mask, aggregation_strategy=self.aggregation_strategy)
+                    # print(pre_entities)
                     grouped_entities = self.aggregate(
                         pre_entities, self.aggregation_strategy)
+                    postprocessed_grouped_entities = []
+                    
+                    # for dct in grouped_entities:
+                    #     dct_copy = dct.copy()
+                    #     if dct['entity'][0] == 'L':
+                    #         dct_copy['entity'] = dct['entity'].replace('L-', 'I-')
+                    #     postprocessed_grouped_entities.append(dct_copy)
+
                     if self.aggregation_strategy != AggregationStrategy.NONE:
                     # Filter anything that is in self.ignore_labels
                         entities = [
