@@ -49,7 +49,8 @@ id2bio = {}
 for k in label2id.keys():
     b_key = 'B-' + k
     i_key = 'I-' + k
-    class_list.extend([b_key, i_key])
+    l_key = 'L-' + k
+    class_list.extend([b_key, i_key, l_key])
 
 
 for idx, key in enumerate(class_list):
@@ -459,7 +460,12 @@ class BIOTagger():
                 mask_label_used[lbl_index] = True
               else:
                 # the label has been already assigned to a token
-                labels[_] = "I-" + label
+                if actual_char_index + len(clean_tok) == end:
+                    # last token of the entity
+                    labels[_] = "L-" + label
+                else:
+                    # inside
+                    labels[_] = "I-" + label
               # once we have found the label we can skip the other checks
               break
           # update pointer
