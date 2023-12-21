@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from typing import Optional
 from torch import Tensor
-import torch.functional as F
+import torch.nn.functional as F
 
 
 class DiceLoss(nn.Module):
