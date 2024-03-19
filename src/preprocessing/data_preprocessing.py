@@ -474,7 +474,7 @@ class BIOTagger():
         return tokens_context, labels
 
     
-    def transform(self, df : pd.DataFrame, copy=False, encode_labels=True):
+    def transform(self, df : pd.DataFrame, copy=False, encode_labels=True, bio2id=bio2id):
         tokens = []
         labels = []
         for idx, row in tqdm(df.iterrows(), total=df.shape[0]):
