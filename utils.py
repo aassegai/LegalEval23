@@ -4,6 +4,7 @@ from tqdm.auto import tqdm
 from IPython.core.display import display, HTML
 from matplotlib import pyplot as plt
 import numpy as np
+import random
 
 def make_annotation(data,
                    predictions, id2label):
@@ -20,7 +21,7 @@ def make_annotation(data,
     return new_data
 
 
-def show_text_segmentation(doc, annotation):
+def show_text_segmentation(doc, annotation, label2id=None):
     display_sentences = []
     for item in annotation:
         new_item = {'start': item['start'],
@@ -31,19 +32,25 @@ def show_text_segmentation(doc, annotation):
     display_dict = {'text': doc,
                     'ents': display_sentences}
 
-    colors = {'PREAMBLE': '#FF0000',
-              'FAC': '#00FF00',
-              'RLC': '#35B8D0',
-              'ISSUE': '#FF00FF',
-              'ARG_PETITIONER': '#FFFF00',
-              'ARG_RESPONDENT': '#00FFFF',
-              'ANALYSIS': '#5EAF48',
-              'STA': '#35B8D0',
-              'PRE_RELIED': '#008000',
-              'PRE_NOT_RELIED': '#FFC0CB',
-              'RATIO': '#800000',
-              'RPC': '#FF7F00',
-              'NONE': '000010'}
+    if label2id is None:
+        colors = {'PREAMBLE': '#FF0000',
+                  'FAC': '#00FF00',
+                  'RLC': '#35B8D0',
+                  'ISSUE': '#FF00FF',
+                  'ARG_PETITIONER': '#FFFF00',
+                  'ARG_RESPONDENT': '#00FFFF',
+                  'ANALYSIS': '#5EAF48',
+                  'STA': '#35B8D0',
+                  'PRE_RELIED': '#008000',
+                  'PRE_NOT_RELIED': '#FFC0CB',
+                  'RATIO': '#800000',
+                  'RPC': '#FF7F00',
+                  'NONE': '000010'}
+    else:
+        color_list = ["#%06x" % random.randint(0, 0xFFFFFF) for _ in range(27)]
+        color_list = [item.upper() for item in color_list]
+        colors = {k: color_list[v] for k, v in label2id.items()}
+        print(colors)
 
     options = {'colors': colors}
   
