@@ -412,7 +412,7 @@ class BIOTagger():
 
 
 
-    def make_bio_tagging(self, row : dict):
+    def make_bio_tagging(self, row : dict, annotation_column:str='annotations'):
         """
           Tokenizes the input context and assignes a label to each token, solving the
           misalignment between labeled words and sub-tokens.
@@ -433,7 +433,10 @@ class BIOTagger():
         labels = ['O'] * len(tokens_context)
 
         # keep track of labels alreay assigned to token, distinguish between "B-" and "I-" labels
-        labels_in_text = [annotation['label'][0] for annotation in row.annotations]
+        if type(row[annotation_column][0]['label']) == list:
+            labels_in_text = [annotation['label'][0] for annotation in row[annotation_column]]
+        else:
+            labels_in_text = [annotation['label'] for annotation in row[annotation_column]]
         mask_label_used = [False] * len(labels_in_text)
 
         # "pointer" (in the whole context without spaces) to first character of the current token
@@ -474,28 +477,28 @@ class BIOTagger():
         return tokens_context, labels
 
     
-    def transform(self, df : pd.DataFrame, copy=False, encode_labels=True, bio2id=bio2id):
+    def transform(self, df : pd.DataFrame, copy=False, encode_labels=True, bio2id=bio2id, annotation_column='annotations'):
         tokens = []
         labels = []
         for idx, row in tqdm(df.iterrows(), total=df.shape[0]):
-            tok, lab = self.make_bio_tagging(row)
+            tok, lab = self.make_bio_tagging(row, annotation_column=annotation_column)
             tokens.append(tok)
             if encode_labels:
                 lab = [bio2id[l] for l in lab]
                 labels.append(lab)
             else:
                 labels.append(lab)
-
+        new_col_name = 'labels' if annotation_column=='annotations' else 'encoded' + annotation_column
         if copy:
             return_df = df.copy()
             return_df['tokens'] = tokens
-            return_df['labels'] = labels
+            return_df[new_col_name] = labels
             return return_df
 
         else:
             return_df = df
             return_df['tokens'] = tokens
-            return_df['labels'] = labels
+            return_df[new_col_name] = labels
             return return_df
             
 
